@@ -1,6 +1,7 @@
 #include "LedControl.h" //  need the library
 #include <LiquidCrystal.h>
 #include <time.h>
+#include <EEPROM.h>
 
 #define CLK_PIN 11
 #define MAX7219_1 12
@@ -10,6 +11,7 @@
 #define BUTTON_PIN 8
 #define INITIAL_BOARDLENGHT 4
 #define LIMIT_LINE 6
+#define START_INDEX 0
 
 #define RS 2
 #define E 3
@@ -28,9 +30,9 @@ LedControl lc = LedControl( MAX7219_1, CLK_PIN, LOAD_PIN , NR_DRIVER ); //DIN, C
 // 1 as we are only using 1 MAX7219
 
  int ballLine, ballColumn;
-
+ int highScore;
  int playerPosition;
- int boardLenght; // lungimea navetei de prindere se modifica pentru a creste dificultatea
+ int boardLenght; // the lenght of the catch block, automatically gets shorter every 10 points
  int score;
  long long lastMove;
  int playScreen [9][9];
@@ -51,6 +53,7 @@ LedControl lc = LedControl( MAX7219_1, CLK_PIN, LOAD_PIN , NR_DRIVER ); //DIN, C
  byte numberG_10_Amazed [] = { B00100100,B00100100,B00000000,B00011000,B00000000,B00011000,B00100100,B00011000};
 
  bool startScreen;
+ 
 void setup()
 {
   // the zero refers to the MAX7219 number, it is zero for 1 chip
@@ -70,25 +73,26 @@ void setup()
    playScreen[i][j] = 0;
 
    lcd.begin (16 , 2) ;
-  lcd.clear();
-  lcd.setCursor(0 , 0);
+   lcd.clear();
+   lcd.setCursor(0 , 0);
+
   
    pinMode(PWM , OUTPUT);
-   analogWrite(PWM , 99);
+   analogWrite(PWM , 95);
 
   boardLenght = INITIAL_BOARDLENGHT;
   startScreen = true;
+
+  highScore = EEPROM.read(START_INDEX); 
 }
 
 
-
-
-  void reviveBall () {
-        ballLine=0;
+void reviveBall () {
+        ballLine = 0;
         ballColumn = rand() % LIMIT_LINE + 1;
      }
         
-  void ballCatched () {
+void ballCatched () {
       score++;
       if (score % 5 == 0) SPEED -= 100;
       if (score % 10 == 0) boardLenght--;
@@ -96,19 +100,20 @@ void setup()
       
     }
     
-  void moveBall(){
+void moveBall(){
         ballLine++;    
     }   
 
-   void pause (int time)
+void pause (int time)
    {
     int lastUpdate=millis();
     while (millis()-lastUpdate<time);
       
    }
    
-  void endGame()
+void endGame()
   {
+    if (score > highScore ) {highScore = score; EEPROM.write (0, score);}
     lc.clearDisplay(0);
     switch (score){
     case 0: {
@@ -174,8 +179,8 @@ void setup()
       }
     }
     startScreen = true;
+    pause(1500);
     initialiseScreenAndValues();
-    pause(1000);
    
   }
   
@@ -209,28 +214,31 @@ void initialiseScreenAndValues ()
     reviveBall();
     boardLenght = INITIAL_BOARDLENGHT;   
   }
+
 void loop()
   {
     if (startScreen == true)
       { lc.clearDisplay(0);
+      
         lcd.setCursor(0,0);
-        lcd.print("Your last score :" + score ); 
+        lcd.print("HighScore :" + highScore ); 
         lcd.setCursor(0,1);
-        lcd.print("Press the button to continue");      
-        if (digitalRead(BUTTON_PIN) == HIGH)
+        lcd.print("Press the button to continue");   
+        
+        if (digitalRead(BUTTON_PIN) == HIGH) //if the reset button is pressed, the game starts 
         { initialiseScreenAndValues();
           startScreen=false;
          score = 0;
         }
-        //meniul de start screen, asteapta sa fie implementat      
+             
       }
     else
       {
       clearMap();
-      setPlayerPosition();
-      setPlayerOnMap(playerPosition);
+      setPlayerPosition(); // maps the input to the x-axis coordonates 
+      setPlayerOnMap(playerPosition); // implements the logic for the crate based on the playerposition
        
-      if (millis() - lastMove >= SPEED){
+      if (millis() - lastMove >= SPEED){ // speed sets up the time when the ball is droping 1 unit. Accelerates every 5  points
         lastMove = millis();
         
         moveBall();
