@@ -53,7 +53,7 @@ LedControl lc = LedControl( MAX7219_1, CLK_PIN, LOAD_PIN , NR_DRIVER ); //DIN, C
  byte numberG_10_Amazed [] = { B00100100,B00100100,B00000000,B00011000,B00000000,B00011000,B00100100,B00011000};
 
  bool startScreen;
- 
+ bool firstTime;
 void setup()
 {
   // the zero refers to the MAX7219 number, it is zero for 1 chip
@@ -72,17 +72,18 @@ void setup()
   for (int j = 0 ; j<9 ; j++)
    playScreen[i][j] = 0;
 
-   lcd.begin (16 , 2) ;
-   lcd.clear();
-   lcd.setCursor(0 , 0);
-
+   
   
    pinMode(PWM , OUTPUT);
    analogWrite(PWM , 95);
-
+   
+   lcd.begin (16 , 2) ;
+   lcd.clear();
+   lcd.setCursor(0 , 0);
+   
   boardLenght = INITIAL_BOARDLENGHT;
   startScreen = true;
-
+  firstTime = true;
   highScore = EEPROM.read(START_INDEX); 
 }
 
@@ -116,65 +117,77 @@ void endGame()
     if (score > highScore ) {highScore = score; EEPROM.write (0, score);}
     lc.clearDisplay(0);
     switch (score){
-    case 0: {
-                  printByte(number_0_Sad);
-                  break;
-               }
-    case 1: {
-                printByte(number_1);
-                 break;
-               }
-    case 2: {
-                printByte(number_2);
-                 break;
-               }
-    case 3 : {
-                printByte(number_3);
-                 break;
-               }
-    case 4 : {
-                printByte(number_4);
-                 break;
-               }
-    case 5 : {
-                printByte(number_5);
-                 break;
-               }
-    case 6 : {
-                printByte(number_6);
-                 break;
-               }
-    case 7 : {
-                printByte(number_7);
-                 break;
-               }
-    case 8 : {
-                printByte(number_8);
-                 break;
-               }
-    case 9 : {
-                printByte(number_9);
-                 break;
-               }
-    case 10 : {
-                printByte(number_10);
-                 break;
-               }
+      case 0:   
+      {
+        printByte(number_0_Sad);
+        break;
+      }
+      case 1: 
+      {
+        printByte(number_1);
+        break;
+      }
+      case 2: 
+      {
+        printByte(number_2);
+        break;
+      }
+      case 3 : 
+      {
+        printByte(number_3);
+        break;
+      }
+      case 4 : 
+      {
+        printByte(number_4);
+        break;
+      }
+      case 5 : 
+      {
+        printByte(number_5);
+        break;
+      }
+      case 6 : 
+      {
+        printByte(number_6);
+        break;
+      }
+      case 7 : 
+      {
+        printByte(number_7);
+        break;
+      }
+      case 8 : 
+      {
+        printByte(number_8);
+        break;
+      }
+      case 9 :
+      {
+        printByte(number_9);
+        break;
+      }
+      case 10 : 
+      {
+        printByte(number_10);
+        break;
+      }
                                                 
     
-    default :{
-      int counter = 0;
-      while (counter < 5) {
-      printByte(numberG_10_Smile);
-      
-      pause(500);
-     
-      lc.clearDisplay(0);
-      printByte(numberG_10_Amazed);
-      
-      pause(500);
- 
-      counter++;
+      default :
+      {
+        int counter = 0;
+        while (counter < 5) {
+        printByte(numberG_10_Smile);
+        
+        pause(500);
+       
+        lc.clearDisplay(0);
+        printByte(numberG_10_Amazed);
+        
+        pause(500);
+   
+        counter++;
         }
       }
     }
@@ -218,16 +231,18 @@ void initialiseScreenAndValues ()
 void loop()
   {
     if (startScreen == true)
-      { lc.clearDisplay(0);
-      
-        lcd.setCursor(0,0);
-        lcd.print("HighScore :" + highScore ); 
-        lcd.setCursor(0,1);
-        lcd.print("Press the button to continue");   
-        
+      {  if (firstTime == true)
+        { lc.clearDisplay(0);
+          lcd.setCursor(0,0);
+          lcd.print((String)"Last Score : " + score); 
+          lcd.setCursor(0,1);
+          lcd.print("Press the button to continue");   
+          firstTime = false;
+        }         
         if (digitalRead(BUTTON_PIN) == HIGH) //if the reset button is pressed, the game starts 
         { initialiseScreenAndValues();
           startScreen=false;
+          firstTime = true;
          score = 0;
         }
              
@@ -238,7 +253,8 @@ void loop()
       setPlayerPosition(); // maps the input to the x-axis coordonates 
       setPlayerOnMap(playerPosition); // implements the logic for the crate based on the playerposition
        
-      if (millis() - lastMove >= SPEED){ // speed sets up the time when the ball is droping 1 unit. Accelerates every 5  points
+      if (millis() - lastMove >= SPEED)
+      { // speed sets up the time when the ball is droping 1 unit. Accelerates every 5  points
         lastMove = millis();
         
         moveBall();
@@ -254,7 +270,7 @@ void loop()
 void printByte (byte character [])
     {
       int i = 0;
-      for (i = 0 ; i < 8 ; i++)
+      for (i = 0; i < 8; i++)
         {
           lc.setRow(0, i, character[i]);
         }
@@ -265,8 +281,8 @@ void printByte (byte character [])
 void draw ()
     {
       lc.clearDisplay(0);
-    for (int row = 0; row < 8 ; row++)
-      for (int col = 0; col < 8 ; col++)
+    for (int row = 0; row < 8; row++)
+      for (int col = 0; col < 8; col++)
          if (playScreen[col][row] == 1)
             lc.setLed(0, col, row, true);
     }
