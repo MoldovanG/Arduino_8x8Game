@@ -50,8 +50,8 @@ void setup()
 {
   // the zero refers to the MAX7219 number, it is zero for 1 chip
   
-  lc.shutdown(0 , false); // turn off power saving, enables display
-  lc.setIntensity(0 , 2); // sets brightness (0~15 possible values)
+  lc.shutdown(0, false); // turn off power saving, enables display
+  lc.setIntensity(0, 2); // sets brightness (0~15 possible values)
   lc.clearDisplay(0);// clear screen  
   pinMode(BUTTON_PIN, INPUT);
   
@@ -80,12 +80,14 @@ void setup()
 }
 
 
-void reviveBall () {
-        ballLine = 0;
-        ballColumn = rand() % LIMIT_LINE + 1;
-     }
+void reviveBall () 
+   {
+      ballLine = 0;
+      ballColumn = rand() % LIMIT_LINE + 1;
+   }
         
-void ballCatched () {
+void ballCatched () 
+   {
       score++;
       if (score % SPEED_INCREASE_NUMBER == 0) SPEED -= 100;
       if (score % LENGHT_DECREASE_NUMBER == 0) boardLenght--;
@@ -93,9 +95,10 @@ void ballCatched () {
       
     }
     
-void moveBall(){
+void moveBall()
+   {
         ballLine++;    
-    }   
+   }   
 
 
    
@@ -123,8 +126,8 @@ void setPlayerOnMap (int playerPosition)
   
 void setPlayerPosition()
   {
-  int sensorValue = analogRead(POT_PIN);
-    playerPosition = map (sensorValue, 0, 1025, 0, 8-boardLenght);
+    int sensorValue = analogRead(POT_PIN);
+    playerPosition = map (sensorValue, 0, 1025, 0, MARGIN-boardLenght);
     
   }
 
@@ -146,8 +149,10 @@ void initialiseScreenAndValues ()
 void loop()
   {
     if (startScreen == true)
-      {  if (firstTime == true)
-        { lc.clearDisplay(0);
+      {  
+        if (firstTime == true)
+        { 
+          lc.clearDisplay(0);
           lcd.setCursor(0,0);
           lcd.print((String)"Last Score : " + score); 
           lcd.setCursor(0,1);
@@ -155,8 +160,9 @@ void loop()
           firstTime = false;
         }         
         if (digitalRead(BUTTON_PIN) == HIGH) //if the reset button is pressed, the game starts 
-        { initialiseScreenAndValues();
-          startScreen=false;
+        { 
+          initialiseScreenAndValues();
+          startScreen = false;
           firstTime = true;
          score = 0;
         }
@@ -164,21 +170,22 @@ void loop()
       }
     else
       {
-      clearMap();
-      setPlayerPosition(); // maps the input to the x-axis coordonates 
-      setPlayerOnMap(playerPosition); // implements the logic for the crate based on the playerposition
-       
-      if (millis() - lastMove >= SPEED)
-      { // speed sets up the time when the ball is droping 1 unit. Accelerates every 5  points
-        lastMove = millis();
-        
-        moveBall();
-        if (ballLine == LIMIT_LINE && (ballColumn > playerPosition && ballColumn < playerPosition + boardLenght))
-            ballCatched();
-        else if (ballLine >= LIMIT_LINE) endGame();
-      }
-      playScreen[ballLine][ballColumn] = 1;
-      draw();
+        clearMap();
+        setPlayerPosition(); // maps the input to the x-axis coordonates 
+        setPlayerOnMap(playerPosition); // implements the logic for the crate based on the playerposition
+         
+        if (millis() - lastMove >= SPEED)
+        { 
+           // speed sets up the time when the ball is droping 1 unit. Accelerates every 5  points
+          lastMove = millis();
+          
+          moveBall();
+          if (ballLine == LIMIT_LINE && (ballColumn > playerPosition && ballColumn < playerPosition + boardLenght))
+              ballCatched();
+          else if (ballLine >= LIMIT_LINE) endGame();
+        }
+        playScreen[ballLine][ballColumn] = 1;
+        draw();
       }
   }
   
