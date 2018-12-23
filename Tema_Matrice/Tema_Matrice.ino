@@ -17,6 +17,7 @@
 #define LENGHT_DECREASE_NUMBER 10
 #define MARGIN 8
 #define START 0
+#define SPEED_STEP 100
 
 #define RS 2
 #define E 3
@@ -89,7 +90,7 @@ void reviveBall ()
 void ballCatched () 
    {
       score++;
-      if (score % SPEED_INCREASE_NUMBER == 0) SPEED -= 100;
+      if (score % SPEED_INCREASE_NUMBER == 0) SPEED -= SPEED_STEP;
       if (score % LENGHT_DECREASE_NUMBER == 0) boardLenght--;
       reviveBall();
       
@@ -164,7 +165,7 @@ void loop()
           initialiseScreenAndValues();
           startScreen = false;
           firstTime = true;
-         score = 0;
+          score = 0;
         }
              
       }
